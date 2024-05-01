@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Sanctum\PersonalAccessToken;
 
 class UserController extends Controller
 {
@@ -122,37 +121,33 @@ class UserController extends Controller
         }
     }
 
-    public function validateToken(Request $request)
+    /**
+     * @return JsonResponse
+     */
+    public function validateToken(): JsonResponse
     {
-        info($request);
-        // try {
-        //     $token = DB::table('personal_access_tokens')
-        //         ->where('name', 'Login_token')
-        //         ->orderBy('id', 'desc')
-        //         ->limit(1)
-        //         ->get();
+        try {
+            $token = DB::table('personal_access_tokens')
+                ->where('name', 'Login_token')
+                ->orderBy('id', 'desc')
+                ->limit(1)
+                ->get();
 
-        //     // info($token->all());
-
-        //     $tokenable_id = $token->all();
-
-        //     info($tokenable_id['tokenable_id']);
-
+            $token = json_decode(json_encode($token), true);
     
-        //     $user = User::findOrFail($token['tokenable_id']);
-        //     info($user);
+            $user = User::findOrFail($token[0]['tokenable_id']);
 
-        //     return response()->json([
-        //         'error' => false,
-        //         'message' => 'Token validado com sucesso.',
-        //         'data' => $user
-        //     ]);
-        // } catch (Exception $ex) {
-        //     return response()->json([
-        //         'error' => true,
-        //         'message' => $ex->getMessage()
-        //     ]);
-        // }
+            return response()->json([
+                'error' => false,
+                'message' => 'Token validado com sucesso.',
+                'data' => $user
+            ]);
+        } catch (Exception $ex) {
+            return response()->json([
+                'error' => true,
+                'message' => $ex->getMessage()
+            ]);
+        }
     }
     
     /**

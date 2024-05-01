@@ -140,4 +140,56 @@ class PostController extends Controller
             ]);
         }
     }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse  
+     */
+    public function search(Request $request): JsonResponse
+    {
+        try {
+            $search = $request->get('search');
+
+            $post = Post::where('title', 'LIKE', "%{$search}%")->get();
+
+            return response()->json([
+                'error' => false,
+                'message' => 'Busca de post recuperada com sucesso.',
+                'data' => $post
+            ]);
+        } catch (Exception $ex) {
+            return response()->json([
+                'error' => true,
+                'message' => $ex->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * @param String $id
+     */
+    public function downloadCsv($id)
+    {
+        try {
+            $posts = Post::where(["user_id" => $id])->get();
+
+            $filename = "application.csv";
+            $fp = fopen($filename, "w+");
+            fputcsv($fp, array('Titulo', 'Conteudo', 'Data de Publicacao'));
+
+            foreach ($posts as $post) {
+                fputcsv($fp, array($post->title, $post->content, $post->publication_date));
+            }
+
+            fclose($fp);
+            $headers = array('Content-Type' => 'text/csv');
+
+            return response()->download($filename, 'application.csv', $headers);
+        } catch (Exception $ex) {
+            return response()->json([
+                'error' => true,
+                'message' => $ex->getMessage()
+            ]);
+        }
+    }
 }
